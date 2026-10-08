@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Lead Strategy Assistant | AI Agent Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-blue-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center glow-effect">
+                    <span class="text-xl">🤖</span>
+                </div>
+                <span class="font-bold text-lg tracking-tight">LeadMastermind<span class="text-blue-500">.ai</span></span>
+            </div>
+            <div class="text-xs px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
+                Autonomous Agent Demo v1.2
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-6 py-10">
+        
+        <!-- Hero Intro -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl mb-3">
+                Smart Lead Strategy & CRM Assistant
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
+                An autonomous agent that analyzes hard metrics and soft psychological cues, builds a master-class closing playbook, and syncs to your CRM safely.
+            </p>
+        </div>
+
+        <!-- Input Card -->
+        <div id="input-card" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl mb-8">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <span>📋</span> Prospect Input Data
+            </h2>
+            
+            <!-- Quick Presets -->
+            <div class="mb-5 flex flex-wrap gap-2 items-center text-xs">
+                <span class="text-slate-400 font-medium">Quick Presets:</span>
+                <button onclick="loadPreset('tech')" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Tech CTO (Sarah)</button>
+                <button onclick="loadPreset('fin')" class="px-3 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Enterprise CFO (Marcus)</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Prospect Name</label>
+                    <input type="text" id="leadName" value="Sarah Jenkins" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Company Name</label>
+                    <input type="text" id="companyName" value="Nexus Cloud Solutions" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-slate-200">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Background Context / Scraped Notes</label>
+                <textarea id="rawNotes" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 text-slate-200">Series B startup, ~50 employees. Sarah is the CTO. Recently spoke on a podcast about hating long emails and preferring direct technical bullet points. Extremely busy schedule, active on LinkedIn early mornings.</textarea>
+            </div>
+
+            <button onclick="startAgent()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/30">
+                <span>⚡ Activate Agent Mastermind</span>
+            </button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-card" class="glass-panel rounded-2xl p-10 text-center hidden mb-8">
+            <div class="relative w-20 h-20 mx-auto mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-2xl">🧠</div>
+            </div>
+            <h3 id="loading-title" class="text-xl font-bold mb-2">Activating Agent Neural Loop...</h3>
+            <p id="loading-desc" class="text-slate-400 text-sm mb-8">Phase 1: Gathering hard metrics & executive footprint...</p>
+
+            <div class="max-w-md mx-auto space-y-3 text-left text-xs">
+                <div id="step-1" class="p-3 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between text-slate-400 transition">
+                    <span>Phase 1: Gathering hard metrics & executive footprint</span>
+                    <span class="status-icon">⏳</span>
+                </div>
+                <div id="step-2" class="p-3 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between text-slate-400 transition">
+                    <span>Phase 2: Analyzing communication style and busyness cues</span>
+                    <span class="status-icon">⏳</span>
+                </div>
+                <div id="step-3" class="p-3 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between text-slate-400 transition">
+                    <span>Phase 3: Synthesizing Mastermind Closing Playbook & timing</span>
+                    <span class="status-icon">⏳</span>
+                </div>
+                <div id="step-4" class="p-3 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between text-slate-400 transition">
+                    <span>Phase 4: Structuring CRM profile & drafting tailored email</span>
+                    <span class="status-icon">⏳</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div id="results-card" class="glass-panel rounded-2xl p-6 sm:p-8 hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-5 gap-4">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">Tier 1 High Priority</span>
+                        <span class="text-xs text-slate-400" id="res-company-sub">Nexus Cloud Solutions</span>
+                    </div>
+                    <h2 class="text-2xl font-bold" id="res-lead-name">Sarah Jenkins</h2>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="px-3 py-1 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-medium flex items-center gap-1.5">
+                        <span>🛡️</span> Human-in-the-Loop Safeguard: Paused
+                    </span>
+                </div>
+            </div>
+
+            <!-- Grid Layout for Factors -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80">
+                    <h3 class="text-sm font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                        <span>📊</span> Hard Factors & Business Profile
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed" id="res-hard">
+                        Series B B2B SaaS startup (~50 employees). Cloud-native AWS architecture with a fast-growing data engineering team.
+                    </p>
+                </div>
+                <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80">
+                    <h3 class="text-sm font-semibold text-purple-400 mb-2 flex items-center gap-2">
+                        <span>🧠</span> Soft Factors & Psychological Profile
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed" id="res-soft">
+                        Extremely busy executive; has a strong aversion to corporate fluff. Prefers direct, technical bullet points and clear ROI metrics.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mastermind Playbook -->
+            <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80">
+                <h3 class="text-sm font-semibold text-emerald-400 mb-3 flex items-center gap-2">
+                    <span>♟️</span> Mastermind Closing Strategy & Playbook
+                </h3>
+                <div id="res-strategy" class="space-y-2 text-sm text-slate-300">
+                    <p>• <strong>The Hook:</strong> Acknowledge their recent Series B growth and scaling architecture milestones.</p>
+                    <p>• <strong>The Angle:</strong> Focus strictly on eliminating security bottlenecks during engineering expansion.</p>
+                    <p>• <strong>Follow-Up Cadence:</strong> Keep follow-ups short, crisp, and spaced out by 4 days due to her heavy workload.</p>
+                </div>
+            </div>
+
+            <!-- Optimal Timing -->
+            <div class="bg-slate-900/60 rounded-xl p-5 border border-slate-800/80">
+                <h3 class="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
+                    <span>⏰</span> Optimal Outreach Timing & Channel
+                </h3>
+                <p class="text-sm text-slate-300" id="res-timing">
+                    <strong>Best Window:</strong> Tuesday or Thursday at 7:45 AM (before morning engineering standups). <strong>Channel:</strong> Direct email or customized LinkedIn note.
+                </p>
+            </div>
+
+            <!-- Drafted Email -->
+            <div class="bg-slate-900/80 rounded-xl p-5 border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                        <span>✉️</span> Drafted Outreach Email (Awaiting Approval)
+                    </h3>
+                    <button onclick="copyEmail()" id="copy-btn" class="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                        Copy Email
+                    </button>
+                </div>
+                <div id="res-email" class="bg-slate-950 p-4 rounded-lg font-mono text-xs text-slate-300 whitespace-pre-line border border-slate-900">
+Subject: Scaling infrastructure post-Series B
+
+Hi Sarah,
+
+Saw the recent Series B announcement—congrats on the milestone.
+As you scale engineering past 50 devs, maintaining AWS deployment velocity without security bottlenecks usually becomes priority #1.
+
+We helped a similar team cut audit times by 40% during their growth phase.
+Worth a 7-minute technical sync this Thursday at 8:00 AM?
+
+Best,
+[Your Name]
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                <button onclick="resetAgent()" class="text-xs text-slate-400 hover:text-slate-200 transition underline">
+                    ← Analyze Another Lead
+                </button>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <button onclick="alert('Email approved and queued for sending!')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition shadow-lg shadow-emerald-600/20">
+                        Approve & Send to CRM
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function loadPreset(type) {
+            if(type === 'tech') {
+                document.getElementById('leadName').value = "Sarah Jenkins";
+                document.getElementById('companyName').value = "Nexus Cloud Solutions";
+                document.getElementById('rawNotes').value = "Series B startup, ~50 employees. Sarah is the CTO. Recently spoke on a podcast about hating long emails and preferring direct technical bullet points. Extremely busy schedule, active on LinkedIn early mornings.";
+            } else if(type === 'fin') {
+                document.getElementById('leadName').value = "Marcus Vance";
+                document.getElementById('companyName').value = "Apex Financial Group";
+                document.getElementById('rawNotes').value = "Enterprise bank, 5,000+ employees. Marcus is the CFO. Extremely risk-averse, cares deeply about compliance, cost reduction, and security audits. Answers calls late afternoons.";
+            }
+        }
+
+        function startAgent() {
+            const lead = document.getElementById('leadName').value;
+            const company = document.getElementById('companyName').value;
+            const notes = document.getElementById('rawNotes').value;
+
+            if(!lead || !company) {
+                alert("Please enter both a lead name and company name.");
+                return;
+            }
+
+            // Hide input, show loading
+            document.getElementById('input-card').classList.add('hidden');
+            document.getElementById('loading-card').classList.remove('hidden');
+
+            // Reset steps UI
+            for(let i=1; i<=4; i++) {
+                const el = document.getElementById(`step-${i}`);
+                el.className = "p-3 rounded-lg bg-slate-900/50 border border-slate-800 flex items-center justify-between text-slate-400 transition";
+                el.querySelector('.status-icon').innerText = "⏳";
+            }
+
+            // Run simulated steps
+            setTimeout(() => updateStep(1, "Phase 2: Analyzing communication style and busyness cues"), 1200);
+            setTimeout(() => updateStep(2, "Phase 3: Synthesizing Mastermind Closing Playbook & timing"), 2600);
+            setTimeout(() => updateStep(3, "Phase 4: Structuring CRM profile & drafting tailored email"), 4000);
+            
+            // Final completion step
+            setTimeout(() => {
+                updateStep(4, "Complete!", true);
+                setTimeout(() => {
+                    document.getElementById('loading-card').classList.add('hidden');
+                    populateResults(lead, company, notes);
+                    document.getElementById('results-card').classList.remove('hidden');
+                }, 600);
+            }, 5400);
+        }
+
+        function updateStep(stepIndex, nextDesc, isFinal = false) {
+            // Mark previous step complete
+            const prevEl = document.getElementById(`step-${stepIndex}`);
+            prevEl.className = "p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/30 flex items-center justify-between text-emerald-400 transition";
+            prevEl.querySelector('.status-icon').innerText = "✓";
+
+            if(!isFinal) {
+                // Highlight current active step
+                const currEl = document.getElementById(`step-${stepIndex + 1}`);
+                currEl.className = "p-3 rounded-lg bg-blue-950/30 border border-blue-500/40 flex items-center justify-between text-blue-300 transition animate-pulse";
+                currEl.querySelector('.status-icon').innerText = "🔄";
+                
+                document.getElementById('loading-desc').innerText = nextDesc;
+            } else {
+                document.getElementById('loading-desc').innerText = "Agent execution successful!";
+            }
+        }
+
+        function populateResults(lead, company, notes) {
+            document.getElementById('res-lead-name').innerText = lead;
+            document.getElementById('res-company-sub').innerText = company;
+
+            if(lead.includes("Marcus")) {
+                document.getElementById('res-hard').innerText = "Enterprise banking institution (>5,000 employees). Legacy on-premise infrastructure migrating slowly to hybrid cloud.";
+                document.getElementById('res-soft').innerText = "Extremely risk-averse, formal communication style. Values compliance, SOC2 certifications, and bottom-line cost reduction over speed.";
+                document.getElementById('res-strategy').innerHTML = `
+                    <p>• <strong>The Hook:</strong> Address regulatory compliance and risk mitigation directly.</p>
+                    <p>• <strong>The Angle:</strong> Focus on secure legacy modernization with zero compliance downtime.</p>
+                    <p>• <strong>Follow-Up Cadence:</strong> Professional, formal, spaced out by 5 business days.</p>
+                `;
+                document.getElementById('res-timing').innerHTML = `<strong>Best Window:</strong> Thursday at 4:30 PM (end-of-week wind down). <strong>Channel:</strong> Formal executive email.`;
+                document.getElementById('res-email').innerText = `Subject: Security & Compliance in ${company}'s Hybrid Migration\n\nDear ${lead},\n\nAs financial institutions modernize infrastructure, balancing cloud agility with strict regulatory compliance is paramount.\n\nWe recently helped a comparable enterprise reduce audit overhead by 35% during migration.\n\nWould you be open to a brief introductory call next Tuesday afternoon?\n\nSincerely,\n[Your Name]`;
+            } else {
+                document.getElementById('res-hard').innerText = `Company: ${company}. Series B B2B SaaS startup (~50 employees). Cloud-native tech stack with fast-growing engineering teams.`;
+                document.getElementById('res-soft').innerText = `Profile for ${lead}: Fast-paced executive; dislikes corporate fluff. Prefers direct, technical bullet points and clear efficiency metrics.`;
+                document.getElementById('res-strategy').innerHTML = `
+                    <p>• <strong>The Hook:</strong> Acknowledge their recent growth and scaling architecture milestones.</p>
+                    <p>• <strong>The Angle:</strong> Focus strictly on eliminating engineering bottlenecks during team scaling.</p>
+                    <p>• <strong>Follow-Up Cadence:</strong> Keep follow-ups short, crisp, and spaced out by 4 days.</p>
+                `;
+                document.getElementById('res-timing').innerHTML = `<strong>Best Window:</strong> Tuesday or Thursday at 7:45 AM. <strong>Channel:</strong> Direct email or customized LinkedIn note.`;
+                document.getElementById('res-email').innerText = `Subject: Scaling ${company}'s infrastructure post-Series B\n\nHi ${lead},\n\nSaw the recent milestone news for ${company}.\nAs you scale engineering past 50 devs, maintaining AWS deployment velocity without security bottlenecks usually becomes priority #1.\n\nWe helped a similar team cut audit times by 40% during their growth phase.\n\nWorth a 7-minute technical sync this Thursday at 8:00 AM?\n\nBest,\n[Your Name]`;
+            }
+        }
+
+        function copyEmail() {
+            const emailText = document.getElementById('res-email').innerText;
+            navigator.clipboard.writeText(emailText).then(() => {
+                const btn = document.getElementById('copy-btn');
+                btn.innerText = "Copied!";
+                btn.classList.add('bg-emerald-600', 'text-white');
+                setTimeout(() => {
+                    btn.innerText = "Copy Email";
+                    btn.classList.remove('bg-emerald-600', 'text-white');
+                }, 2000);
+            });
+        }
+
+        function resetAgent() {
+            document.getElementById('results-card').classList.add('hidden');
+            document.getElementById('input-card').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
