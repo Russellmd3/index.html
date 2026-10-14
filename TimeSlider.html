@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fly High</title>
+    <style>
+        :root {
+            --bg-sky-top: #050814;
+            --bg-sky-bottom: #0f172a;
+            --card-bg: rgba(21, 29, 42, 0.75);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent-rix: #38bdf8;
+            --accent-sea: #34d399;
+            --accent-us: #a78bfa;
+            --red-marker: #ef4444;
+            --dot-color: rgba(255, 255, 255, 0.45);
+            --dot-active: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, var(--bg-sky-top) 0%, var(--bg-sky-bottom) 100%);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.8s ease;
+        }
+
+        /* BACKGROUND ANIMATION CANVAS & OVERLAYS */
+        #sky-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .stars-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(1.5px 1.5px at 10% 15%, #ffffff 100%, transparent),
+                radial-gradient(2px 2px at 25% 35%, #ffffff 100%, transparent),
+                radial-gradient(1px 1px at 40% 10%, #ffffff 100%, transparent),
+                radial-gradient(2px 2px at 55% 28%, #ffffff 100%, transparent),
+                radial-gradient(1.5px 1.5px at 70% 18%, #ffffff 100%, transparent),
+                radial-gradient(2px 2px at 85% 42%, #ffffff 100%, transparent),
+                radial-gradient(1px 1px at 92% 12%, #ffffff 100%, transparent),
+                radial-gradient(2px 2px at 15% 75%, #ffffff 100%, transparent),
+                radial-gradient(1.5px 1.5px at 35% 82%, #ffffff 100%, transparent),
+                radial-gradient(2px 2px at 65% 68%, #ffffff 100%, transparent),
+                radial-gradient(1px 1px at 80% 85%, #ffffff 100%, transparent);
+            opacity: 1;
+            transition: opacity 0.8s ease;
+        }
+
+        /* Celestial Bodies */
+        .celestial-body {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: left 0.15s ease-out, top 0.15s ease-out, opacity 0.5s ease, box-shadow 0.3s ease;
+            will-change: transform, left, top;
+        }
+
+        .sun {
+            background: radial-gradient(circle, #fff7ed 20%, #fde047 50%, #f59e0b 100%);
+            box-shadow: 0 0 40px #fde047, 0 0 80px #f59e0b, 0 0 120px rgba(245, 158, 11, 0.5);
+            opacity: 0;
+        }
+
+        .moon {
+            background: radial-gradient(circle, #f8fafc 40%, #cbd5e1 80%, #94a3b8 100%);
+            box-shadow: 0 0 20px rgba(248, 250, 252, 0.6), 0 0 40px rgba(148, 163, 184, 0.3);
+            opacity: 0;
+        }
+
+        /* Moon craters detail */
+        .moon::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 18px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(100, 116, 139, 0.3);
+            box-shadow: 20px 10px 0 -2px rgba(100, 116, 139, 0.25), 10px 25px 0 -3px rgba(100, 116, 139, 0.3);
+        }
+
+        /* FOREGROUND LAYOUT */
+        .container {
+            width: 100%;
+            max-width: 860px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .format-toggle {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+
+        .format-toggle:hover {
+            background: rgba(40, 55, 77, 0.9);
+            border-color: var(--accent-rix);
+        }
+
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .slider-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .city-label {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .time-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .time-display.snapped {
+            border-color: var(--accent-rix);
+            color: var(--accent-rix);
+        }
+
+        /* Track Wrapper for Overlay Markers */
+        .slider-track-wrapper {
+            position: relative;
+            width: 100%;
+            height: 32px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Range Input Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: rgba(26, 35, 50, 0.8);
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+            margin: 0;
+        }
+
+        input[type="range"].snap-transition::-webkit-slider-thumb {
+            transition: transform 0.2s ease-out;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            position: relative;
+            z-index: 6;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            position: relative;
+            z-index: 6;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Continuous Hour Tick Dots Container */
+        .dots-container {
+            position: absolute;
+            left: 11px;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .hour-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: var(--dot-color);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .slider-track-wrapper:hover .hour-dot,
+        .slider-track-wrapper:focus-within .hour-dot {
+            background-color: var(--dot-active);
+            transform: scale(1.25);
+        }
+
+        .red-pm-dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--red-marker);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.9);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .pm-label {
+            position: absolute;
+            left: 50%;
+            top: 24px;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: var(--red-marker);
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Airport Codes Container */
+        .code-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+        }
+
+        .tag {
+            font-size: 0.72rem;
+            background: rgba(13, 21, 32, 0.7);
+            border: 1px solid var(--card-border);
+            padding: 0.18rem 0.45rem;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        .tag strong {
+            color: var(--text-main);
+        }
+
+        /* Quick Call Phrase Generator Buttons */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .zone-btn {
+            background: rgba(28, 39, 56, 0.8);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.55rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .zone-btn:hover {
+            background: var(--accent-rix);
+            color: #0b0f19;
+            border-color: var(--accent-rix);
+        }
+
+        .phrase-box-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .phrase-box {
+            width: 100%;
+            background: rgba(13, 21, 32, 0.8);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 0.95rem;
+            outline: none;
+            resize: none;
+        }
+
+        .copy-btn {
+            align-self: flex-end;
+            background: rgba(36, 51, 74, 0.8);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(51, 70, 99, 0.9);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- DYNAMIC BACKGROUND LAYER -->
+    <div id="sky-background">
+        <div class="stars-layer" id="stars-layer"></div>
+        <div class="celestial-body sun" id="sun"></div>
+        <div class="celestial-body moon" id="moon"></div>
+    </div>
+
+    <!-- FOREGROUND APP CONTAINER -->
+    <div class="container">
+
+        <!-- Top Bar -->
+        <div class="header-bar">
+            <h1>Fly High</h1>
+            <button class="format-toggle" id="format-toggle-btn" onclick="toggleTimeFormat()">Switch to 12-Hour Format</button>
+        </div>
+
+        <!-- TOP DIV: PRIMARY REFERENCE CITIES -->
+        <div class="section">
+            <div class="section-title">Primary Reference Sliders</div>
+            <div class="slider-group">
+
+                <!-- RIX Slider (Starts at 12:00 AM / 00:00) -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-rix);">RIX (Riga, Latvia)</span>
+                        <span class="time-display" id="rix-time">00:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="rix-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="rix-slider" min="0" max="1439" step="1" value="0">
+                    </div>
+                </div>
+
+                <!-- SEA Slider -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-sea);">SEA (Seattle, USA)</span>
+                        <span class="time-display" id="sea-time">14:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="sea-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="sea-slider" min="0" max="1439" step="1" value="840">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BOTTOM DIV: US TIME ZONES & MAJOR AIRPORTS -->
+        <div class="section">
+            <div class="section-title">United States Time Zones & Airport Hubs</div>
+            <div class="slider-group">
+
+                <!-- Eastern Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">US Eastern (EST / EDT)</span>
+                        <span class="time-display" id="useast-time">17:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="useast-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="useast-slider" min="0" max="1439" step="1" value="1020">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>MIA</strong> Miami</span>
+                        <span class="tag"><strong>TPA</strong> Tampa</span>
+                        <span class="tag"><strong>JFK/LGA/EWR</strong> New York</span>
+                        <span class="tag"><strong>ATL</strong> Atlanta</span>
+                        <span class="tag"><strong>BOS</strong> Boston</span>
+                        <span class="tag"><strong>IAD/DCA</strong> Washington D.C.</span>
+                        <span class="tag"><strong>CLT</strong> Charlotte</span>
+                        <span class="tag"><strong>MCO</strong> Orlando</span>
+                        <span class="tag"><strong>PHL</strong> Philadelphia</span>
+                        <span class="tag"><strong>DTW</strong> Detroit</span>
+                    </div>
+                </div>
+
+                <!-- Central Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">US Central (CST / CDT)</span>
+                        <span class="time-display" id="uscentral-time">16:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="uscentral-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="uscentral-slider" min="0" max="1439" step="1" value="960">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>ORD/MDW</strong> Chicago</span>
+                        <span class="tag"><strong>DFW/DAL</strong> Dallas</span>
+                        <span class="tag"><strong>IAH/HOU</strong> Houston</span>
+                        <span class="tag"><strong>MSY</strong> New Orleans</span>
+                        <span class="tag"><strong>MSP</strong> Minneapolis</span>
+                        <span class="tag"><strong>BNA</strong> Nashville</span>
+                        <span class="tag"><strong>STL</strong> St. Louis</span>
+                        <span class="tag"><strong>MCI</strong> Kansas City</span>
+                    </div>
+                </div>
+
+                <!-- Mountain Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">US Mountain (MST / MDT)</span>
+                        <span class="time-display" id="usmountain-time">15:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="usmountain-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="usmountain-slider" min="0" max="1439" step="1" value="900">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>DEN</strong> Denver</span>
+                        <span class="tag"><strong>PHX</strong> Phoenix</span>
+                        <span class="tag"><strong>SLC</strong> Salt Lake City</span>
+                        <span class="tag"><strong>ABQ</strong> Albuquerque</span>
+                        <span class="tag"><strong>BOI</strong> Boise</span>
+                    </div>
+                </div>
+
+                <!-- Pacific Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">US Pacific (PST / PDT)</span>
+                        <span class="time-display" id="uspacific-time">14:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="uspacific-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="uspacific-slider" min="0" max="1439" step="1" value="840">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>LAX</strong> Los Angeles</span>
+                        <span class="tag"><strong>SFO</strong> San Francisco</span>
+                        <span class="tag"><strong>SEA</strong> Seattle</span>
+                        <span class="tag"><strong>LAS</strong> Las Vegas</span>
+                        <span class="tag"><strong>SAN</strong> San Diego</span>
+                        <span class="tag"><strong>PDX</strong> Portland</span>
+                        <span class="tag"><strong>SJC</strong> San Jose</span>
+                    </div>
+                </div>
+
+                <!-- Alaska Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">Alaska Time (AKST / AKDT)</span>
+                        <span class="time-display" id="alaska-time">13:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="alaska-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="alaska-slider" min="0" max="1439" step="1" value="780">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>ANC</strong> Anchorage</span>
+                        <span class="tag"><strong>FAI</strong> Fairbanks</span>
+                        <span class="tag"><strong>JNU</strong> Juneau</span>
+                    </div>
+                </div>
+
+                <!-- Hawaii-Aleutian Time -->
+                <div class="slider-row">
+                    <div class="slider-header">
+                        <span class="city-label" style="color: var(--accent-us);">Hawaii-Aleutian Time (HST)</span>
+                        <span class="time-display" id="hawaii-time">11:00</span>
+                    </div>
+                    <div class="slider-track-wrapper">
+                        <div class="dots-container" id="hawaii-dots"></div>
+                        <div class="red-pm-dot"></div>
+                        <span class="pm-label">12PM</span>
+                        <input type="range" id="hawaii-slider" min="0" max="1439" step="1" value="660">
+                    </div>
+                    <div class="code-tags">
+                        <span class="tag"><strong>HNL</strong> Honolulu</span>
+                        <span class="tag"><strong>OGG</strong> Kahului (Maui)</span>
+                        <span class="tag"><strong>KOA</strong> Kona</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BOTTOM DIV: QUICK CALL PHRASE GENERATOR -->
+        <div class="section">
+            <div class="section-title">Generate Call Phrase</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                Click a time zone button below to format a quick message with its current slider time:
+            </p>
+
+            <div class="btn-grid">
+                <button class="zone-btn" onclick="generatePhrase('rix', 'Riga (RIX) time')">RIX (Riga)</button>
+                <button class="zone-btn" onclick="generatePhrase('sea', 'Seattle (SEA) time')">SEA (Seattle)</button>
+                <button class="zone-btn" onclick="generatePhrase('useast', 'Eastern time')">Eastern</button>
+                <button class="zone-btn" onclick="generatePhrase('uscentral', 'Central time')">Central</button>
+                <button class="zone-btn" onclick="generatePhrase('usmountain', 'Mountain time')">Mountain</button>
+                <button class="zone-btn" onclick="generatePhrase('uspacific', 'Pacific time')">Pacific</button>
+                <button class="zone-btn" onclick="generatePhrase('alaska', 'Alaska time')">Alaska</button>
+                <button class="zone-btn" onclick="generatePhrase('hawaii', 'Hawaii time')">Hawaii</button>
+            </div>
+
+            <div class="phrase-box-container">
+                <textarea id="phrase-output" class="phrase-box" rows="2" readonly placeholder="Click any zone button above to generate phrase..."></textarea>
+                <button class="copy-btn" onclick="copyPhrase()">Copy Text</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // IANA Time Zone Mappings
+        const ZONES = {
+            rix: 'Europe/Riga',
+            sea: 'America/Los_Angeles',
+            useast: 'America/New_York',
+            uscentral: 'America/Chicago',
+            usmountain: 'America/Denver',
+            uspacific: 'America/Los_Angeles',
+            alaska: 'America/Anchorage',
+            hawaii: 'Pacific/Honolulu'
+        };
+
+        let is24HourFormat = true;
+
+        // Generate 24 Hourly Dots along each slider track
+        function generateHourDots() {
+            Object.keys(ZONES).forEach(key => {
+                const dotsContainer = document.getElementById(`${key}-dots`);
+                if (!dotsContainer) return;
+                dotsContainer.innerHTML = '';
+
+                for (let i = 0; i < 24; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'hour-dot';
+                    if (i === 12) dot.style.opacity = '0'; // skip 12PM dot position (handled by red marker)
+                    dotsContainer.appendChild(dot);
+                }
+            });
+        }
+
+        // Toggle 12h / 24h format
+        function toggleTimeFormat() {
+            is24HourFormat = !is24HourFormat;
+            const btn = document.getElementById('format-toggle-btn');
+            btn.innerText = is24HourFormat ? "Switch to 12-Hour Format" : "Switch to 24-Hour Format";
+            updateAllFrom('rix', false);
+        }
+
+        // Update Celestial Background (Sun/Moon position & Sky Colors) based on RIX minutes (0 to 1439)
+        function updateCelestialBackground(rixMinutes) {
+            const sun = document.getElementById('sun');
+            const moon = document.getElementById('moon');
+            const stars = document.getElementById('stars-layer');
+            const root = document.documentElement;
+
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            // Daylight period: 06:00 (360m) to 18:00 (1080m)
+            const isDaytime = rixMinutes >= 360 && rixMinutes <= 1080;
+
+            // Interpolate Sun Arc trajectory (06:00 -> 18:00)
+            if (rixMinutes >= 330 && rixMinutes <= 1110) {
+                // Normalize day progress: 0 at sunrise, 1 at sunset
+                const dayProgress = (rixMinutes - 360) / 720;
+
+                // Horizontal trajectory across screen width
+                const xPos = screenWidth * (0.1 + dayProgress * 0.8);
+
+                // Curved Parabolic Arc height: Highest point (0.18 height) at 12:00 PM
+                const arcY = Math.sin(dayProgress * Math.PI);
+                const yPos = screenHeight * (0.85 - arcY * 0.65);
+
+                sun.style.left = `${xPos}px`;
+                sun.style.top = `${yPos}px`;
+                sun.style.opacity = Math.max(0, Math.min(1, arcY * 2));
+            } else {
+                sun.style.opacity = '0';
+            }
+
+            // Interpolate Moon Arc trajectory (18:00 -> 06:00)
+            let nightMinutes = rixMinutes < 360 ? rixMinutes + 1440 : rixMinutes;
+            if (nightMinutes >= 1050 && nightMinutes <= 1830) {
+                const nightProgress = (nightMinutes - 1080) / 720;
+                const xPos = screenWidth * (0.1 + nightProgress * 0.8);
+                const arcY = Math.sin(nightProgress * Math.PI);
+                const yPos = screenHeight * (0.85 - arcY * 0.65);
+
+                moon.style.left = `${xPos}px`;
+                moon.style.top = `${yPos}px`;
+                moon.style.opacity = Math.max(0, Math.min(1, arcY * 2));
+            } else {
+                moon.style.opacity = '0';
+            }
+
+            // Dynamic Sky Gradient Colors
+            if (rixMinutes >= 360 && rixMinutes <= 1080) {
+                // Daylight peak at noon (720m)
+                const noonDist = 1 - Math.abs(rixMinutes - 720) / 360; // 0 to 1
+
+                // Smooth transition from dawn/dusk orange to midday cyan
+                const skyTop = interpolateColor([12, 24, 48], [14, 116, 144], noonDist);
+                const skyBottom = interpolateColor([30, 58, 138], [56, 189, 248], noonDist);
+
+                root.style.setProperty('--bg-sky-top', skyTop);
+                root.style.setProperty('--bg-sky-bottom', skyBottom);
+                stars.style.opacity = (1 - noonDist).toFixed(2);
+            } else {
+                // Night sky gradient
+                root.style.setProperty('--bg-sky-top', '#030712');
+                root.style.setProperty('--bg-sky-bottom', '#0f172a');
+                stars.style.opacity = '1';
+            }
+        }
+
+        // Helper: Interpolate between RGB values
+        function interpolateColor(color1, color2, factor) {
+            const r = Math.round(color1[0] + factor * (color2[0] - color1[0]));
+            const g = Math.round(color1[1] + factor * (color2[1] - color1[1]));
+            const b = Math.round(color1[2] + factor * (color2[2] - color1[2]));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Core Sync Function: Updates all slider positions, time displays & background animation
+        function updateAllFrom(sourceKey, isUserDrag = true) {
+            const sourceSlider = document.getElementById(`${sourceKey}-slider`);
+            const minutesValue = parseInt(sourceSlider.value, 10);
+
+            const refDate = new Date();
+            const targetHours = Math.floor(minutesValue / 60);
+            const targetMins = minutesValue % 60;
+            refDate.setHours(targetHours, targetMins, 0, 0);
+
+            let currentRixMinutes = 0;
+
+            Object.keys(ZONES).forEach(key => {
+                const timeDisplay = document.getElementById(`${key}-time`);
+                const slider = document.getElementById(`${key}-slider`);
+
+                const options = {
+                    timeZone: ZONES[key],
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: !is24HourFormat
+                };
+
+                let timeString = new Intl.DateTimeFormat('en-US', options).format(refDate);
+
+                if (is24HourFormat && timeString.length === 4) {
+                    timeString = '0' + timeString;
+                }
+
+                timeDisplay.innerText = timeString;
+
+                // Calculate active RIX minutes for animation sync
+                const parts = new Intl.DateTimeFormat('en-US', {
+                    timeZone: ZONES[key],
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: false
+                }).formatToParts(refDate);
+
+                let h = 0,
+                    m = 0;
+                parts.forEach(p => {
+                    if (p.type === 'hour') h = parseInt(p.value, 10) % 24;
+                    if (p.type === 'minute') m = parseInt(p.value, 10);
+                });
+
+                const calculatedMinutes = h * 60 + m;
+
+                if (key === 'rix') {
+                    currentRixMinutes = calculatedMinutes;
+                }
+
+                if (key !== sourceKey) {
+                    slider.value = calculatedMinutes;
+                }
+            });
+
+            // Update background celestial arc based on synchronized RIX minutes
+            updateCelestialBackground(currentRixMinutes);
+        }
+
+        // Snap slider value to nearest 5 minutes on release
+        function snapToNearest5(key) {
+            const slider = document.getElementById(`${key}-slider`);
+            const display = document.getElementById(`${key}-time`);
+            const currentValue = parseInt(slider.value, 10);
+
+            const snappedValue = Math.round(currentValue / 5) * 5;
+
+            slider.classList.add('snap-transition');
+            slider.value = snappedValue % 1440;
+
+            updateAllFrom(key, false);
+
+            display.classList.add('snapped');
+            setTimeout(() => {
+                display.classList.remove('snapped');
+                slider.classList.remove('snap-transition');
+            }, 300);
+        }
+
+        // Call Phrase Generator Function
+        function generatePhrase(key, zoneLabel) {
+            const timeDisplay = document.getElementById(`${key}-time`).innerText;
+            const phraseBox = document.getElementById('phrase-output');
+            phraseBox.value = `I will give you a call by around ${timeDisplay} ${zoneLabel}`;
+        }
+
+        // Copy phrase to clipboard
+        function copyPhrase() {
+            const phraseBox = document.getElementById('phrase-output');
+            if (!phraseBox.value) return;
+            phraseBox.select();
+            navigator.clipboard.writeText(phraseBox.value);
+
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'Copied!';
+            setTimeout(() => copyBtn.innerText = originalText, 1500);
+        }
+
+        // Setup event listeners on sliders
+        function initializeSliders() {
+            generateHourDots();
+
+            Object.keys(ZONES).forEach(key => {
+                const slider = document.getElementById(`${key}-slider`);
+
+                slider.addEventListener('input', () => {
+                    updateAllFrom(key, true);
+                });
+
+                slider.addEventListener('change', () => snapToNearest5(key));
+                slider.addEventListener('pointerup', () => snapToNearest5(key));
+                slider.addEventListener('touchend', () => snapToNearest5(key));
+            });
+
+            // Window resize updates background arc dimensions
+            window.addEventListener('resize', () => {
+                const r = parseInt(document.getElementById('rix-slider').value, 10);
+                updateCelestialBackground(r);
+            });
+
+            // Initialize all timezone displays starting with RIX at 12:00 AM (00:00)
+            updateAllFrom('rix', false);
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeSliders);
+    </script>
+</body>
+
+</html>
